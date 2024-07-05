@@ -1,29 +1,55 @@
 import React, { useEffect, useState } from "react";
 import { NewsItem } from "./NewsItem";
 
-export const NewsBoard = ({ category, country }) => {
+const NewsBoard = ({ category }) => {
   const [articles, setArticles] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
- useEffect(() => {
-  const fetchNews = async () => {
-    try {
-      const url = `https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&apiKey=${
-        import.meta.env.VITE_API_KEY
-      }`;
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+  useEffect(() => {
+    const fetchNews = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const countries = ["us", "in", "gb"]; // Countries: US, India (IN), UK (GB)
+        const promises = countries.map(country =>
+          fetch(`https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&apiKey=${
+            import.meta.env.VITE_API_KEY
+          }`)
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+            return response.json();
+          })
+        );
+
+        // Wait for all fetch requests to complete
+        const results = await Promise.all(promises);
+        
+        // Combine all articles from different countries into one array
+        const combinedArticles = results.flatMap(result => result.articles);
+
+        setArticles(combinedArticles);
+      } catch (error) {
+        setError('Error fetching data. Please try again later.');
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
       }
-      const data = await response.json();
-      setArticles(data.articles);
-    } catch (error) {
-      console.error('Error fetching data:', error);
-      // Handle error state or notify the user appropriately
-    }
-  };
+    };
 
-  fetchNews();
-}, [category, country]);
+    fetchNews();
+  }, [category]);
+
+  if (loading) {
+    return <p className="text-center mt-3">Loading...</p>;
+  }
+
+  if (error) {
+    return <p className="text-center mt-3 text-danger">{error}</p>;
+  }
 
   return (
     <div className="container">
@@ -31,7 +57,7 @@ export const NewsBoard = ({ category, country }) => {
         Latest <span className="badge bg-danger">News</span>
       </h2>
       <div className="row">
-        {articles.map((news, index) => (
+        {articles && articles.map((news, index) => (
           <NewsItem
             key={index}
             title={news.title}
@@ -44,3 +70,5 @@ export const NewsBoard = ({ category, country }) => {
     </div>
   );
 };
+
+export default NewsBoard;
