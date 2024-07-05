@@ -13,13 +13,14 @@ const NewsBoard = ({ category }) => {
 
       try {
         const countries = ["us", "in", "gb"]; // Countries: US, India (IN), UK (GB)
-        const promises = countries.map(country =>
-          fetch(`https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&apiKey=${
-            import.meta.env.VITE_API_KEY
-          }`)
-          .then(response => {
+        const promises = countries.map((country) =>
+          fetch(
+            `https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&apiKey=${
+              import.meta.env.VITE_API_KEY
+            }`
+          ).then((response) => {
             if (!response.ok) {
-              throw new Error('Network response was not ok');
+              throw new Error("Network response was not ok");
             }
             return response.json();
           })
@@ -27,14 +28,14 @@ const NewsBoard = ({ category }) => {
 
         // Wait for all fetch requests to complete
         const results = await Promise.all(promises);
-        
+
         // Combine all articles from different countries into one array
-        const combinedArticles = results.flatMap(result => result.articles);
+        const combinedArticles = results.flatMap((result) => result.articles);
 
         setArticles(combinedArticles);
       } catch (error) {
-        setError('Error fetching data. Please try again later.');
-        console.error('Error fetching data:', error);
+        setError("Error fetching data. Please try again later.");
+        console.error("Error fetching data:", error);
       } finally {
         setLoading(false);
       }
@@ -57,15 +58,16 @@ const NewsBoard = ({ category }) => {
         Latest <span className="badge bg-danger">News</span>
       </h2>
       <div className="row">
-        {articles && articles.map((news, index) => (
-          <NewsItem
-            key={index}
-            title={news.title}
-            description={news.description}
-            src={news.urlToImage}
-            url={news.url}
-          />
-        ))}
+        {articles &&
+          articles.map((news, index) => (
+            <NewsItem
+              key={index}
+              title={news.title}
+              description={news.description}
+              src={news.urlToImage}
+              url={news.url}
+            />
+          ))}
       </div>
     </div>
   );
